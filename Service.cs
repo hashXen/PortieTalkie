@@ -14,14 +14,15 @@ namespace PortyTalky
     public class Service
     {
         private const string portErrorMsg = "Port number out of range!\nPorts should be from 0 to 65535.";
-        public Service(string ip, int port, bool isTcp = true) 
+        public Service(string ip, int port, bool isTcp = true)
         {
             IP = ip;
             if (port < 0 || port > 65535)
             {
                 throw new ArgumentException(portErrorMsg);
             }
-            IsTCP = isTcp; 
+            Port = port;
+            IsTCP = isTcp;
         }
         public Service(string ipPort, bool isTcp = true)
         {
@@ -74,20 +75,12 @@ namespace PortyTalky
         {
             return (IP, Port, IsTCP).GetHashCode();
         }
-    }
-
-    public class BoolToStringConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override string ToString()
         {
-            bool isTCP = (bool)value;
-            return isTCP ? "TCP" : "UDP";
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {   // so far not necessary, but implemented just in case
-            string str = (string)value;
-            return str == "TCP";
+            var sb = new StringBuilder();
+            sb.Append(IsTCP ? "tcp" : "udp");
+            sb.Append($"://{IP}:{Port}");
+            return sb.ToString();
         }
     }
 }

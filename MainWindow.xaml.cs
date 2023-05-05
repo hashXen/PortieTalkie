@@ -53,7 +53,8 @@ namespace PortyTalky
             var selectedService = (Service)listView.SelectedItem;
             if (selectedService != null)     // maybe nothing is selected yet, so we need to check
             {
-                MessageBox.Show($"Selected {selectedService.IP}:{selectedService.Port}");
+                TalkyWindow talkyWindow = new TalkyWindow(selectedService);
+                talkyWindow.Show();
             }
         }
 

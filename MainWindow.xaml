@@ -34,7 +34,7 @@
             <Button DockPanel.Dock="Right" MinWidth="60" Margin="3" Content="Add" Click="ButtonAdd_Click"/>
             <StackPanel DockPanel.Dock="Right">
                 <RadioButton Name="tcpRadioButton" Content="TCP" GroupName="Protocol" IsChecked="True"/>
-                <RadioButton Content="UDP" GroupName="Protocol"/>
+                <RadioButton Content="UDP" GroupName="Protocol" />
             </StackPanel>
             <ComboBox Name="cbHostPort" Margin="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsEditable="True" KeyDown="cbHostPort_KeyDown"/>
         </DockPanel>
