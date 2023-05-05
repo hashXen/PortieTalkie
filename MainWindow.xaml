@@ -36,7 +36,7 @@
                 <RadioButton Name="tcpRadioButton" Content="TCP" GroupName="Protocol" IsChecked="True"/>
                 <RadioButton Content="UDP" GroupName="Protocol"/>
             </StackPanel>
-            <ComboBox Name="cbHostPort" Margin="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsEditable="True"/>
+            <ComboBox Name="cbHostPort" Margin="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsEditable="True" KeyDown="cbHostPort_KeyDown"/>
         </DockPanel>
 
         <ListView Name="listView" ItemsSource="{Binding}" Grid.Row="2" MouseDoubleClick="listView_MouseDoubleClick">

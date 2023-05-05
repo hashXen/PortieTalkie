@@ -13,23 +13,33 @@ namespace PortyTalky
 {
     public class Service
     {
-        public Service(string ip, int port, bool isTcp = true) { IP = ip; Port = port; IsTCP = isTcp; }
+        public Service(string ip, int port, bool isTcp = true) 
+        {
+            IP = ip; 
+            if (port < 0 || port > 65535)
+            {
+                throw new ArgumentException("Port out of range");
+            }
+            IsTCP = isTcp; 
+        }
         public Service(string ipPort, bool isTcp = true)
         {
-            string[] splits = ipPort.Split(':'); 
+            string[] splits = ipPort.Split(':');
             IP = splits[0];
             try
             {
                 Port = Convert.ToInt32(splits[1]);
+                if (Port < 0 || Port > 65535)
+                {
+                    throw new ArgumentException("Port out of range");
+                }
             }
             catch
             {
                 MessageBox.Show("Syntax: [host]:[port]\nExample: 192.168.0.1:7777");
-                return;
+                throw new ArgumentException("Bad syntax");
             }
-            IsTCP = isTcp;
         }
-
         public string IP { get; set; }
         public int Port { get; set; }
         public bool IsTCP { get; set; } // true for TCP, false for UDP

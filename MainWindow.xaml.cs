@@ -31,6 +31,7 @@ namespace PortyTalky
         {
             InitializeComponent();
             listView.DataContext = services;   // for databinding
+            cbHostPort.ItemsSource = comboBoxInputs;
         }
 
         private void MenuAbout_Click(object sender, RoutedEventArgs e)
@@ -65,13 +66,20 @@ namespace PortyTalky
         {
             bool? isTcp = tcpRadioButton.IsChecked;
             Service service;
-            if (isTcp.HasValue) 
+            try 
             {
-                service = new Service(cbHostPort.Text, (bool)isTcp);
+                if (isTcp.HasValue)
+                {
+                    service = new Service(cbHostPort.Text, (bool)isTcp);
+                }
+                else
+                {
+                    service = new Service(cbHostPort.Text);
+                } 
             }
-            else
+            catch (Exception ex)
             {
-                service = new Service(cbHostPort.Text);
+
             }
             if (!services.Contains(service))
             {
@@ -79,6 +87,14 @@ namespace PortyTalky
                 comboBoxInputs.Add(cbHostPort.Text);
             }
             
+        }
+
+        private void cbHostPort_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ButtonAdd_Click(sender, e);
+            }
         }
     }
 }
