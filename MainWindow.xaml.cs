@@ -31,6 +31,7 @@ namespace PortyTalky
         {
             InitializeComponent();
             listView.DataContext = services;   // for databinding
+            cbHostPort.ItemsSource = comboBoxInputs;
         }
 
         private void MenuAbout_Click(object sender, RoutedEventArgs e)
@@ -79,6 +80,14 @@ namespace PortyTalky
                 comboBoxInputs.Add(cbHostPort.Text);
             }
             
+        }
+
+        private void cbHostPort_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ButtonAdd_Click(sender, e);
+            }
         }
     }
 }
