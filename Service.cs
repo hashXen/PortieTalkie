@@ -13,12 +13,13 @@ namespace PortyTalky
 {
     public class Service
     {
+        private const string portErrorMsg = "Port number out of range!\nPorts should be from 0 to 65535.";
         public Service(string ip, int port, bool isTcp = true) 
         {
-            IP = ip; 
+            IP = ip;
             if (port < 0 || port > 65535)
             {
-                throw new ArgumentException("Port out of range");
+                throw new ArgumentException(portErrorMsg);
             }
             IsTCP = isTcp; 
         }
@@ -29,15 +30,14 @@ namespace PortyTalky
             try
             {
                 Port = Convert.ToInt32(splits[1]);
-                if (Port < 0 || Port > 65535)
-                {
-                    throw new ArgumentException("Port out of range");
-                }
             }
             catch
             {
-                MessageBox.Show("Syntax: [host]:[port]\nExample: 192.168.0.1:7777");
-                throw new ArgumentException("Bad syntax");
+                throw new ArgumentException("Syntax: [host]:[port]\nExample: 192.168.0.1:7777");
+            }
+            if (Port < 0 || Port > 65535)
+            {
+                throw new ArgumentException(portErrorMsg);
             }
         }
         public string IP { get; set; }

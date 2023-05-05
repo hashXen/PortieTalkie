@@ -75,16 +75,16 @@ namespace PortyTalky
                 else
                 {
                     service = new Service(cbHostPort.Text);
-                } 
+                }
+                if (!services.Contains(service))
+                {
+                    services.Add(service);
+                    comboBoxInputs.Add(cbHostPort.Text);
+                }
             }
-            catch (Exception ex)
+            catch (ArgumentException ae)
             {
-
-            }
-            if (!services.Contains(service))
-            {
-                services.Add(service);
-                comboBoxInputs.Add(cbHostPort.Text);
+                MessageBox.Show(ae.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             
         }
