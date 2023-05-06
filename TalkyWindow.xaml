@@ -29,15 +29,15 @@
             </Grid.ColumnDefinitions>
             <!--The purpose of this scrollviewer is purely for stopping the textbox from expanding the window horizontally for a long input-->
             <ScrollViewer Name="scrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="5">
-                <TextBox x:Name="talkyInput" TextWrapping="Wrap" AcceptsReturn="True" MaxWidth="{Binding ElementName=scrollViewer, Path=ActualWidth}" MaxHeight="{Binding ElementName=scrollViewer, Path=ActualHeight}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <TextBox x:Name="talkyInput" TextWrapping="Wrap" AcceptsReturn="False" MaxWidth="{Binding ElementName=scrollViewer, Path=ActualWidth}" MaxHeight="{Binding ElementName=scrollViewer, Path=ActualHeight}" ScrollViewer.VerticalScrollBarVisibility="Auto" KeyDown="talkyInput_KeyDown" />
             </ScrollViewer>
             <StackPanel Grid.Column="1">
-                <CheckBox Name="checkBoxEnterToSend" Content="Enter to send" Margin="5" IsChecked="True"/>
+                <CheckBox Name="checkBoxEnterToSend" Content="Enter to send" Margin="5" IsChecked="True" Unchecked="checkBoxEnterToSend_Unchecked" Checked="checkBoxEnterToSend_Checked"/>
                 <CheckBox Name="checkBoxSendNewLine" Content='Send "\r\n"' Margin="5" IsChecked="True"/>
                 
             </StackPanel>
             <DockPanel Grid.Column="1" LastChildFill="False">
-                <Button Name="btnSend" IsEnabled="False" DockPanel.Dock="Bottom" Width="Auto" Height="22" Content="Send" Click="ButtonSend_Click" Margin="5"/>
+                <Button Name="btnSend" IsEnabled="False" DockPanel.Dock="Bottom" Width="Auto" Height="22" Content="Send" Click="btnSend_Click" Margin="5"/>
             </DockPanel>
 
         </Grid>

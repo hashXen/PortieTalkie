@@ -52,7 +52,7 @@ namespace PortyTalky
         private void listView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var selectedService = (Service)listView.SelectedItem;
-            if (selectedService != null)     // maybe nothing is selected yet, so we need to check
+            if (selectedService is not null)     // maybe nothing is selected yet, so we need to check
             {
                 TalkyWindow talkyWindow = new TalkyWindow(selectedService);
                 talkyWindow.Show();

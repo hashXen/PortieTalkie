@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Input;
 
 namespace PortyTalky
 {
@@ -17,7 +18,7 @@ namespace PortyTalky
         private TextBox? lastMsgTextBox;  // in case more data are still trickling in, needs to point to the last received message 
         private TcpClient? tcpClient;
         private UdpClient? udpClient;
-        private Service service;
+        private readonly Service service;
         private Mutex networkMutex = new Mutex();
         private NetworkStream? networkStream;
         public TalkyWindow(Service service)
@@ -35,7 +36,7 @@ namespace PortyTalky
                     addAnnouncement("Connecting...");
                     try
                     {
-                        await tcpClient.ConnectAsync(service.IP, service.Port);   // can't be blocking, need to fix this
+                        await tcpClient.ConnectAsync(service.IP, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
                         networkStream = tcpClient.GetStream();
                         addAnnouncement("Connected!");
                         Dispatcher.Invoke(() =>
@@ -74,13 +75,16 @@ namespace PortyTalky
                 }
             };
         }
-
-        public void ButtonSend_Click(object sender, RoutedEventArgs e)
+        public void btnSend_Click(object sender, RoutedEventArgs e)
         {
             if (service.IsTCP && networkStream is not null)
             {
                 networkMutex.WaitOne();
                 var inputStr = talkyInput.Text;
+                if (checkBoxSendNewLine.IsChecked == true)  // == true is needed because of possible nullity 
+                {
+                    inputStr += "\r\n";
+                }
                 var bytes = Encoding.UTF8.GetBytes(inputStr);
 
                 Task.Run(async () =>
@@ -95,6 +99,29 @@ namespace PortyTalky
             {
 
             } // otherwise do nothing, this will only be reached if networkStream is null
+        }
+
+        private void talkyInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && checkBoxEnterToSend.IsChecked == true && btnSend.IsEnabled)
+            {
+                btnSend_Click(sender, e);
+            }
+        }
+        private void Window_Unloaded(object sender, RoutedEventArgs e)
+        {
+            tcpClient?.Close();
+            udpClient?.Close();
+        }
+
+        private void checkBoxEnterToSend_Unchecked(object sender, RoutedEventArgs e)
+        {
+            talkyInput.AcceptsReturn = true;
+        }
+
+        private void checkBoxEnterToSend_Checked(object sender, RoutedEventArgs e)
+        {
+            talkyInput.AcceptsReturn = false;
         }
         private void addMessage(string message, bool isReply = false)
         {
@@ -132,12 +159,6 @@ namespace PortyTalky
                 textBlock.Text = announcement;
                 chatMessages.Children.Add(textBlock);
             });
-        }
-
-        private void Window_Unloaded(object sender, RoutedEventArgs e)
-        {
-            tcpClient?.Close();
-            udpClient?.Close();
         }
     }
 }
