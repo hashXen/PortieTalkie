@@ -1,12 +1,18 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Threading;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace PortyTalky
 {
@@ -20,26 +26,23 @@ namespace PortyTalky
         private UdpClient? udpClient;
         private Service service;
         private Mutex networkMutex = new Mutex();
-        private NetworkStream? networkStream;
         public TalkyWindow(Service service)
         {
             InitializeComponent();
             this.service = service;
             Title = service.ToString();
-
-            // prep networking when loaded
-            Loaded += async (sender, e) =>
-            {
-                if (service.IsTCP)
-                {
-                    tcpClient = new TcpClient();
-                    addAnnouncement("Connecting...");
-                    try
-                    {
-                        await tcpClient.ConnectAsync(service.IP, service.Port);   // can't be blocking, need to fix this
-                        networkStream = tcpClient.GetStream();
-                        addAnnouncement("Connected!");
-                        btnSend.IsEnabled = true;
+            
+            // prep networking
+            if (service.IsTCP)
+            { 
+                tcpClient = new TcpClient();
+                addAnnouncement("Connecting...");
+                try 
+                { 
+                    tcpClient.Connect(service.IP, service.Port);   // can't be blocking, need to fix this
+                    var networkStream = tcpClient.GetStream();
+                    addAnnouncement("Connected!");
+                    Thread receiveThread = new Thread(() => {
                         while (true)
                         {
                             try
@@ -47,66 +50,57 @@ namespace PortyTalky
                                 // READ
                                 networkMutex.WaitOne();
                                 byte[] buffer = new byte[4096];
-                                var bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+                                networkStream.Read(buffer, 0, buffer.Length);
                                 networkMutex.ReleaseMutex();
-                                addMessage(Encoding.ASCII.GetString(buffer, 0, bytesRead));
+                                addMessage(Encoding.ASCII.GetString(buffer), true);
                             }
-                            catch (Exception ex)
+                            catch
                             {
-                                addAnnouncement("Connection interrupted.\nError: " + ex.Message);
+                                addAnnouncement("Connection interrupted.");
                                 break;
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        addAnnouncement("Connection failed.");
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-
-
-                }
-                else  // UDP
+                    });
+                    receiveThread.Start();
+                } 
+                catch (Exception ex)
                 {
-
+                    addAnnouncement("Connection failed.");
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-            };
+
+
+            }
+            else  // UDP
+            {
+
+            }
         }
 
         public void ButtonSend_Click(object sender, RoutedEventArgs e)
         {
-            if (service.IsTCP && networkStream is not null)
+            if (service.IsTCP && tcpClient is not null)
             {
-                networkMutex.WaitOne();
-                var inputStr = talkyInput.Text;
-                var bytes = Encoding.UTF8.GetBytes(inputStr);
-
-                Task.Run(async () =>
+                var networkStream = tcpClient.GetStream();
+                Thread sendThread = new Thread(() =>
                 {
-                    await networkStream.WriteAsync(bytes, 0, bytes.Length);
+                    networkMutex.WaitOne();
+                    var bytes = new ReadOnlySpan<byte>(Encoding.UTF8.GetBytes(talkyInput.Text));
+                    networkStream.Write(bytes);
                     networkMutex.ReleaseMutex();
+                    Dispatcher.Invoke(() =>  // clear input box
+                    {
+                        talkyInput.Clear();
+                    });
                 });
-                addMessage(inputStr);
-                talkyInput.Clear();
+                sendThread.Start();
             }
-            else if (!service.IsTCP)   // UDP
-            {
-
-            } // otherwise do nothing, this will only be reached if networkStream is null
         }
         private void addMessage(string message, bool isReply = false)
         {
             TextBox textBox = new TextBox();
             // style the textbox here
             textBox.BorderBrush = null;
-            if (message.EndsWith("\r\n"))
-            {
-                message = message[..^2];  // get rid of the last new line
-            }
-            else if (message.EndsWith("\n"))
-            {
-                message = message[..^1];  // get rid of the last new line
-            }
             if (isReply)
             {
                 textBox.Text = message;
@@ -116,14 +110,16 @@ namespace PortyTalky
             {
                 textBox.Text = message;
             }
-            chatMessages.Children.Add(textBox);
+            Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
+            {
+                chatMessages.Children.Add(textBox);
+            });
         }
-        private void addAnnouncement(string announcement)
+        private void addAnnouncement(string announcement) 
         {
             Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
             {
                 TextBlock textBlock = new TextBlock();
-                textBlock.Foreground = new SolidColorBrush(Colors.Blue);
                 textBlock.Text = announcement;
                 chatMessages.Children.Add(textBlock);
             });
@@ -131,8 +127,14 @@ namespace PortyTalky
 
         private void Window_Unloaded(object sender, RoutedEventArgs e)
         {
-            tcpClient?.Close();
-            udpClient?.Close();
+            if (tcpClient is not null)
+            {
+                tcpClient.Close();
+            }
+            if (udpClient is not null)
+            {
+                udpClient.Close();
+            }
         }
     }
 }

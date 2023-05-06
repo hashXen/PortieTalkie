@@ -23,8 +23,7 @@ namespace PortyTalky
     {
         ObservableCollection<Service> services = new ObservableCollection<Service>(){
             new Service("192.168.0.1", 27015, false),  // TODO: Delete these 
-            new Service("192.168.0.1", 80, true),
-            new Service("localhost", 1234)
+            new Service("192.168.0.1", 80, true)
         };
         ObservableCollection<string> comboBoxInputs = new ObservableCollection<string>();
         
