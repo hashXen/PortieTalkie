@@ -15,7 +15,8 @@ namespace PortyTalky
     /// </summary>
     public partial class TalkyWindow : Window
     {
-        private TextBox? lastMsgTextBox;  // in case more data are still trickling in, needs to point to the last received message 
+        private TextBox? lastMsgTextBox;  // TODO: in case more data are still trickling in, needs to point to the last received message 
+        // idea: add to last textbox if all bytesread == 4096 && !endswith("\r\n")
         private TcpClient? tcpClient;
         private UdpClient? udpClient;
         private readonly Service service;
@@ -26,7 +27,7 @@ namespace PortyTalky
             InitializeComponent();
             this.service = service;
             Title = service.ToString();
-
+            const int bufferSize = 10;
             // prep networking when loaded
             Loaded += async (sender, e) =>
             {
@@ -38,6 +39,7 @@ namespace PortyTalky
                     {
                         await tcpClient.ConnectAsync(service.IP, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
                         networkStream = tcpClient.GetStream();
+                        bool firstRead = true; // for messages longer than buffer
                         addAnnouncement("Connected!");
                         Dispatcher.Invoke(() =>
                         {
@@ -49,9 +51,27 @@ namespace PortyTalky
                             {
                                 // READ
                                 networkMutex.WaitOne();
-                                byte[] buffer = new byte[4096];
-                                var bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length);
-                                addMessage(Encoding.ASCII.GetString(buffer, 0, bytesRead));
+                                byte[] buffer = new byte[bufferSize];
+                                var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferSize);
+                                string messageStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                                // TODO: fix this logic
+                                if (firstRead)
+                                {
+                                    addMessage(messageStr, true);
+                                } 
+                                else if (lastMsgTextBox is not null)   // equivalent to just else, but VS wants to check nullity
+                                {
+                                    if (messageStr.EndsWith("\r\n"))
+                                    {
+                                        messageStr = messageStr[..^2];  // get rid of the last new line
+                                    }
+                                    else if (messageStr.EndsWith("\n"))
+                                    {
+                                        messageStr = messageStr[..^1];  // get rid of the last new line
+                                    }
+                                    lastMsgTextBox.Text += messageStr;
+                                }
+                                firstRead = !(bytesRead == bufferSize && !messageStr.EndsWith("\r\n")); // msg to be continued or not
                             }
                             catch (Exception ex)
                             {
