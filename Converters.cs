@@ -18,24 +18,24 @@ namespace PortyTalky
             return str == "TCP";
         }
     }
-    public class SubtractConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null || parameter == null)
-            {
-                return Binding.DoNothing;
-            }
+    //public class SubtractConverter : IValueConverter
+    //{
+    //    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        if (value == null || parameter == null)
+    //        {
+    //            return Binding.DoNothing;
+    //        }
 
-            double input = double.Parse(value.ToString());
-            double subtractValue = double.Parse(parameter.ToString());
+    //        double input = double.Parse(value.ToString());
+    //        double subtractValue = double.Parse(parameter.ToString());
 
-            return input - subtractValue;
-        }
+    //        return input - subtractValue;
+    //    }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

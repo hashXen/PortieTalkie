@@ -28,6 +28,7 @@ namespace PortyTalky
         {
             string[] splits = ipPort.Split(':');
             IP = splits[0];
+            IsTCP = isTcp;
             try
             {
                 Port = Convert.ToInt32(splits[1]);

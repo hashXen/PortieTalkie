@@ -21,12 +21,15 @@ namespace PortyTalky
     /// </summary>
     public partial class TalkyWindow : Window
     {
-        TextBox? lastMsgTextBox;  // in case more data are still trickling in, needs to point to the last received message 
-        TcpClient? tcpClient;
-        UdpClient? udpClient;
+        private TextBox? lastMsgTextBox;  // in case more data are still trickling in, needs to point to the last received message 
+        private TcpClient? tcpClient;
+        private UdpClient? udpClient;
+        private Service service;
+        private Mutex networkMutex = new Mutex();
         public TalkyWindow(Service service)
         {
             InitializeComponent();
+            this.service = service;
             Title = service.ToString();
             
             // prep networking
@@ -36,7 +39,7 @@ namespace PortyTalky
                 addAnnouncement("Connecting...");
                 try 
                 { 
-                    tcpClient.Connect(service.IP, service.Port);   // it's ok to block since window would be useless otherwise
+                    tcpClient.Connect(service.IP, service.Port);   // can't be blocking, need to fix this
                     var networkStream = tcpClient.GetStream();
                     addAnnouncement("Connected!");
                     Thread receiveThread = new Thread(() => {
@@ -45,7 +48,11 @@ namespace PortyTalky
                             try
                             {
                                 // READ
-                                
+                                networkMutex.WaitOne();
+                                byte[] buffer = new byte[4096];
+                                networkStream.Read(buffer, 0, buffer.Length);
+                                networkMutex.ReleaseMutex();
+                                addMessage(Encoding.ASCII.GetString(buffer), true);
                             }
                             catch
                             {
@@ -54,6 +61,7 @@ namespace PortyTalky
                             }
                         }
                     });
+                    receiveThread.Start();
                 } 
                 catch (Exception ex)
                 {
@@ -71,7 +79,22 @@ namespace PortyTalky
 
         public void ButtonSend_Click(object sender, RoutedEventArgs e)
         {
-            chatMessages.Children.Add(new TextBox() { Text="Haha"});
+            if (service.IsTCP && tcpClient is not null)
+            {
+                var networkStream = tcpClient.GetStream();
+                Thread sendThread = new Thread(() =>
+                {
+                    networkMutex.WaitOne();
+                    var bytes = new ReadOnlySpan<byte>(Encoding.UTF8.GetBytes(talkyInput.Text));
+                    networkStream.Write(bytes);
+                    networkMutex.ReleaseMutex();
+                    Dispatcher.Invoke(() =>  // clear input box
+                    {
+                        talkyInput.Clear();
+                    });
+                });
+                sendThread.Start();
+            }
         }
         private void addMessage(string message, bool isReply = false)
         {
@@ -94,10 +117,10 @@ namespace PortyTalky
         }
         private void addAnnouncement(string announcement) 
         {
-            TextBlock textBlock = new TextBlock();
-            textBlock.Text = announcement;
             Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
             {
+                TextBlock textBlock = new TextBlock();
+                textBlock.Text = announcement;
                 chatMessages.Children.Add(textBlock);
             });
         }

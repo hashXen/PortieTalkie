@@ -6,7 +6,9 @@
         xmlns:local="clr-namespace:PortyTalky"
         mc:Ignorable="d"
         Title="Talky"
-        SizeToContent="WidthAndHeight">
+        SizeToContent="WidthAndHeight"
+        Unloaded="Window_Unloaded"
+        >
     <Window.Resources>
     </Window.Resources>
     <Grid MinHeight="450" MinWidth="800">
