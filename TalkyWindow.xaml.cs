@@ -15,8 +15,7 @@ namespace PortyTalky
     /// </summary>
     public partial class TalkyWindow : Window
     {
-        private TextBox? lastMsgTextBox;  // TODO: in case more data are still trickling in, needs to point to the last received message 
-        // idea: add to last textbox if all bytesread == 4096 && !endswith("\r\n")
+        private TextBox? lastMsgTextBox;
         private TcpClient? tcpClient;
         private UdpClient? udpClient;
         private readonly Service service;
@@ -27,7 +26,7 @@ namespace PortyTalky
             InitializeComponent();
             this.service = service;
             Title = service.ToString();
-            const int bufferSize = 10;
+            const int bufferSize = 4096;
             // prep networking when loaded
             Loaded += async (sender, e) =>
             {
@@ -54,12 +53,16 @@ namespace PortyTalky
                                 byte[] buffer = new byte[bufferSize];
                                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferSize);
                                 string messageStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                                // TODO: fix this logic
+                                if (bytesRead == 0) // don't block UI if the server doesn't send stuff
+                                {
+                                    await Task.Delay(10);
+                                    continue;
+                                }
                                 if (firstRead)
                                 {
                                     addMessage(messageStr, true);
-                                } 
-                                else if (lastMsgTextBox is not null)   // equivalent to just else, but VS wants to check nullity
+                                }
+                                else if (!firstRead && lastMsgTextBox is not null)
                                 {
                                     if (messageStr.EndsWith("\r\n"))
                                     {
@@ -168,64 +171,69 @@ namespace PortyTalky
         } // otherwise do nothing, this will only be reached if networkStream is null
 
 
-    private void talkyInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && checkBoxEnterToSend.IsChecked == true && btnSend.IsEnabled)
+        private void talkyInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            btnSend_Click(sender, e);
+            if (e.Key == Key.Enter && checkBoxEnterToSend.IsChecked == true && btnSend.IsEnabled)
+            {
+                btnSend_Click(sender, e);
+            }
         }
-    }
-    private void Window_Unloaded(object sender, RoutedEventArgs e)
-    {
-        tcpClient?.Close();
-        udpClient?.Close();
-    }
+        private void Window_Unloaded(object sender, RoutedEventArgs e)
+        {
+            tcpClient?.Close();
+            udpClient?.Close();
+        }
 
-    private void checkBoxEnterToSend_Unchecked(object sender, RoutedEventArgs e)
-    {
-        talkyInput.AcceptsReturn = true;
-    }
+        private void checkBoxEnterToSend_Unchecked(object sender, RoutedEventArgs e)
+        {
+            talkyInput.AcceptsReturn = true;
+        }
 
-    private void checkBoxEnterToSend_Checked(object sender, RoutedEventArgs e)
-    {
-        talkyInput.AcceptsReturn = false;
+        private void checkBoxEnterToSend_Checked(object sender, RoutedEventArgs e)
+        {
+            talkyInput.AcceptsReturn = false;
+        }
+        private void addMessage(string message, bool isReply = false)
+        {
+            TextBox textBox = new TextBox();
+            // style the textbox here
+            textBox.BorderBrush = null;
+            textBox.TextWrapping = TextWrapping.Wrap;
+            if (isReply)
+            {
+                textBox.Foreground = Brushes.Green;
+            }
+            if (message.EndsWith("\r\n"))
+            {
+                message = message[..^2];  // get rid of the last new line
+            }
+            else if (message.EndsWith("\n"))
+            {
+                message = message[..^1];  // get rid of the last new line
+            }
+            if (isReply)
+            {
+                textBox.Text = message;
+                lastMsgTextBox = textBox;
+            }
+            else
+            {
+                textBox.Text = message;
+            }
+            Dispatcher.Invoke(() =>
+            {
+                chatMessages.Children.Add(textBox);
+            });
+        }
+        private void addAnnouncement(string announcement)
+        {
+            Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
+            {
+                TextBlock textBlock = new TextBlock();
+                textBlock.Foreground = new SolidColorBrush(Colors.Blue);
+                textBlock.Text = announcement;
+                chatMessages.Children.Add(textBlock);
+            });
+        }
     }
-    private void addMessage(string message, bool isReply = false)
-    {
-        TextBox textBox = new TextBox();
-        // style the textbox here
-        textBox.BorderBrush = null;
-        if (message.EndsWith("\r\n"))
-        {
-            message = message[..^2];  // get rid of the last new line
-        }
-        else if (message.EndsWith("\n"))
-        {
-            message = message[..^1];  // get rid of the last new line
-        }
-        if (isReply)
-        {
-            textBox.Text = message;
-            lastMsgTextBox = textBox;
-        }
-        else
-        {
-            textBox.Text = message;
-        }
-        Dispatcher.Invoke(() =>
-        {
-            chatMessages.Children.Add(textBox);
-        });
-    }
-    private void addAnnouncement(string announcement)
-    {
-        Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
-        {
-            TextBlock textBlock = new TextBlock();
-            textBlock.Foreground = new SolidColorBrush(Colors.Blue);
-            textBlock.Text = announcement;
-            chatMessages.Children.Add(textBlock);
-        });
-    }
-}
 }
