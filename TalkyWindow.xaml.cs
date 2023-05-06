@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -39,6 +38,10 @@ namespace PortyTalky
                         await tcpClient.ConnectAsync(service.IP, service.Port);   // can't be blocking, need to fix this
                         networkStream = tcpClient.GetStream();
                         addAnnouncement("Connected!");
+                        Dispatcher.Invoke(() =>
+                        {
+                            btnSend.IsEnabled = true;
+                        });
                         while (true)
                         {
                             try
@@ -115,7 +118,10 @@ namespace PortyTalky
             {
                 textBox.Text = message;
             }
-            chatMessages.Children.Add(textBox);
+            Dispatcher.Invoke(() =>
+            {
+                chatMessages.Children.Add(textBox);
+            });
         }
         private void addAnnouncement(string announcement)
         {
