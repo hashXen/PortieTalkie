@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PortyTalky
+namespace PortieTalkie
 {
     public class Service
     {

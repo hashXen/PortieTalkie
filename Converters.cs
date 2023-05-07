@@ -2,7 +2,7 @@
 using System.Windows.Data;
 using System;
 
-namespace PortyTalky
+namespace PortieTalkie
 {
     public class BoolToStringConverter : IValueConverter
     {

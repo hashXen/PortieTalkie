@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace PortyTalky
+namespace PortieTalkie
 {
     /// <summary>
     /// Interaction logic for AboutWindow.xaml

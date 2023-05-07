@@ -8,12 +8,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace PortyTalky
+namespace PortieTalkie
 {
     /// <summary>
-    /// Interaction logic for TalkyWindow.xaml
+    /// Interaction logic for TalkieWindow.xaml
     /// </summary>
-    public partial class TalkyWindow : Window
+    public partial class TalkieWindow : Window
     {
         private TextBox? lastMsgTextBox;
         private TcpClient? tcpClient;
@@ -21,7 +21,7 @@ namespace PortyTalky
         private readonly Service service;
         private Mutex networkMutex = new Mutex();
         private NetworkStream? networkStream;
-        public TalkyWindow(Service service)
+        public TalkieWindow(Service service)
         {
             InitializeComponent();
             this.service = service;

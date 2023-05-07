@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
-namespace PortyTalky
+namespace PortieTalkie
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -55,7 +55,7 @@ namespace PortyTalky
             var selectedService = (Service)listView.SelectedItem;
             if (selectedService is not null)     // maybe nothing is selected yet, so we need to check
             {
-                TalkyWindow talkyWindow = new TalkyWindow(selectedService);
+                TalkieWindow talkyWindow = new TalkieWindow(selectedService);
                 talkyWindow.Show();
             }
         }
