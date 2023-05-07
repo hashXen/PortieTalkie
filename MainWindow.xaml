@@ -31,7 +31,7 @@
             </MenuItem>
         </Menu>
         <DockPanel Grid.Row="1">
-            <Button DockPanel.Dock="Right" MinWidth="60" Margin="3" Content="Add" Click="ButtonAdd_Click"/>
+            <Button DockPanel.Dock="Right" MinWidth="60" Margin="3" Content="Add" Click="ButtonAdd_Click" Style="{StaticResource FancyButtonStyle}"/>
             <StackPanel DockPanel.Dock="Right">
                 <RadioButton Name="tcpRadioButton" Content="TCP" GroupName="Protocol" IsChecked="True"/>
                 <RadioButton Name="UdpRadioButton" Content="UDP" GroupName="Protocol" />

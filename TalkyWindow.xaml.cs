@@ -53,9 +53,9 @@ namespace PortyTalky
                                 byte[] buffer = new byte[bufferSize];
                                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferSize);
                                 string messageStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                                if (bytesRead == 0) // don't block UI if the server doesn't send stuff
+                                if (bytesRead == 0) // if the service didn't send anything
                                 {
-                                    await Task.Delay(10);
+                                    await Task.Delay(10);  // don't block UI
                                     continue;
                                 }
                                 if (firstRead)
@@ -95,9 +95,8 @@ namespace PortyTalky
 
 
                 }
-                else  // UDP
-                {     // PROBLEM: need to send first before reading
-                      // Potential solution: start
+                else
+                {
                     udpClient = new UdpClient(0);
                     btnSend.IsEnabled = true;
                     while (true)
