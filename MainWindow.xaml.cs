@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
 namespace PortieTalkie
 {
     /// <summary>
@@ -28,7 +18,7 @@ namespace PortieTalkie
             new Service("Google.com", 80)
         };
         ObservableCollection<string> comboBoxInputs = new ObservableCollection<string>();
-        
+
         public MainWindow()
         {
             InitializeComponent();
@@ -41,7 +31,7 @@ namespace PortieTalkie
             AboutWindow aboutWindow = new AboutWindow();
             aboutWindow.ShowDialog();
         }
-        private void MenuExit_Click(object sender, RoutedEventArgs e) 
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
         {
             Environment.Exit(0);
         }
@@ -52,24 +42,33 @@ namespace PortieTalkie
 
         private void listView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var selectedService = (Service)listView.SelectedItem;
-            if (selectedService is not null)     // maybe nothing is selected yet, so we need to check
+            try
             {
-                TalkieWindow talkyWindow = new TalkieWindow(selectedService);
-                talkyWindow.Show();
+                var selectedService = (Service)listView.SelectedItem;
+                var selectedListViewItem = (ListViewItem)listView.ItemContainerGenerator.ContainerFromIndex(listView.SelectedIndex);
+                if (selectedService is not null && selectedListViewItem.IsMouseOver)     // maybe nothing is selected yet, so we need to check
+                {
+                    TalkieWindow talkyWindow = new TalkieWindow(selectedService);
+                    talkyWindow.Show();
+                }
+            }
+            catch (IndexOutOfRangeException)
+            {   // if nothing is selected yet (or the end of the list was selected and deleted in an instant
+                // which is currently not possible), do nothing
+                return;
             }
         }
 
         private void MenuOpen_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
             bool? isTcp = tcpRadioButton.IsChecked;
             Service service;
-            try 
+            try
             {
                 if (isTcp.HasValue)
                 {
@@ -89,7 +88,7 @@ namespace PortieTalkie
             {
                 MessageBox.Show(ae.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            
+
         }
 
         private void cbHostPort_KeyDown(object sender, KeyEventArgs e)
@@ -97,6 +96,37 @@ namespace PortieTalkie
             if (e.Key == Key.Enter)
             {
                 ButtonAdd_Click(sender, e);
+            }
+        }
+        private void listViewItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (listView.SelectedItem is not null)
+            {
+                services.Remove((Service)listView.SelectedItem);
+            }
+        }
+
+        private void listView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            try
+            {
+                var selectedListViewItem = (ListViewItem)listView.ItemContainerGenerator.ContainerFromIndex(listView.SelectedIndex);
+                if (selectedListViewItem is not null)
+                {
+                    if (!selectedListViewItem.IsMouseOver)
+                    {
+                        e.Handled = true;
+                    }
+                }
+                else  // no IndexOutOfRangeException thrown for the -1 index but selectedListViewItem is null.
+                {     // ContainerFromIndex probably just returns null when the ListView is empty without checking index
+                    e.Handled = true;
+                }
+            }
+            catch (IndexOutOfRangeException)
+            {
+                // When nothing is selected, don't open the context menu either
+                e.Handled = true;
             }
         }
     }

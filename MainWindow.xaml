@@ -39,7 +39,7 @@
             <ComboBox Name="cbHostPort" Margin="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsEditable="True" KeyDown="cbHostPort_KeyDown"/>
         </DockPanel>
 
-        <ListView Name="listView" ItemsSource="{Binding}" Grid.Row="2" MouseDoubleClick="listView_MouseDoubleClick">
+        <ListView Name="listView" ItemsSource="{Binding}" Grid.Row="2" MouseDoubleClick="listView_MouseDoubleClick" ContextMenuOpening="listView_ContextMenuOpening">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="IP" DisplayMemberBinding="{Binding IP}" Width="120"/>
@@ -47,7 +47,11 @@
                     <GridViewColumn Header="Protocol" DisplayMemberBinding="{Binding IsTCP, Converter={StaticResource BoolToStringConverter}}"/>
                 </GridView>
             </ListView.View>
-
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Delete" Click="listViewItemDelete_Click"/>
+                </ContextMenu>
+            </ListView.ContextMenu>
         </ListView>
     </Grid>
 </Window>
