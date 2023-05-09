@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -21,7 +22,7 @@ namespace PortieTalkie
             //new Service("Google.com", 80)
         };
         ObservableCollection<string> comboBoxInputs = new ObservableCollection<string>();
-
+        List<TalkieWindow> talkieWindows = new List<TalkieWindow>();
         public MainWindow()
         {
             InitializeComponent();
@@ -58,10 +59,21 @@ namespace PortieTalkie
             };
             Closing += (sender, e) =>
             {  // save the services
-                XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
-                using (TextWriter writer = new StreamWriter(servicesXmlName)) 
-                { 
-                    serializer.Serialize(writer, services); 
+                if (MessageBoxResult.OK == MessageBox.Show("Quit PortieTalkie?", "", MessageBoxButton.OKCancel, MessageBoxImage.Question))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
+                    using (TextWriter writer = new StreamWriter(servicesXmlName))
+                    {
+                        serializer.Serialize(writer, services);
+                    }
+                    foreach (var talkieWindow in talkieWindows)
+                    {
+                        talkieWindow.Close();
+                    }
+                }
+                else
+                {
+                    e.Cancel = true;
                 }
             };
             cbHostPort.ItemsSource = comboBoxInputs;
@@ -90,6 +102,7 @@ namespace PortieTalkie
                 if (selectedService is not null && selectedListViewItem.IsMouseOver)     // maybe nothing is selected yet, so we need to check
                 {
                     TalkieWindow talkyWindow = new TalkieWindow(selectedService);
+                    talkieWindows.Add(talkyWindow);
                     talkyWindow.Show();
                 }
             }
