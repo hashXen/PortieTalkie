@@ -74,7 +74,7 @@ namespace PortieTalkie
         }
         private void MenuExit_Click(object sender, RoutedEventArgs e)
         {
-            Environment.Exit(0);
+            Close();    // Do not use Environment.Exit() for the Closing event to trigger
         }
         private void MenuAdd_Click(object sender, RoutedEventArgs e)
         {
