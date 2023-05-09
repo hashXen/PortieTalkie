@@ -8,12 +8,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Xml.Serialization;
 
 namespace PortieTalkie
 {
     public class Service
     {
         private const string portErrorMsg = "Port number out of range!\nPorts should be from 0 to 65535.";
+        public Service()
+        {
+            IP = "";
+            Port = 0;
+            IsTCP = true;
+        }
         public Service(string ip, int port, bool isTcp = true)
         {
             IP = ip;

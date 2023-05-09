@@ -27,7 +27,7 @@ namespace PortieTalkie
             this.service = service;
             Title = service.ToString();
             const int bufferSize = 4096;
-            // prep networking when loaded
+            // prep networking when the window is loaded
             Loaded += async (sender, e) =>
             {
                 if (service.IsTCP)

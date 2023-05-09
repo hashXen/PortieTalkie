@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Xml.Serialization;
+
 namespace PortieTalkie
 {
     /// <summary>
@@ -12,17 +15,55 @@ namespace PortieTalkie
     public partial class MainWindow : Window
     {
         ObservableCollection<Service> services = new ObservableCollection<Service>(){
-            new Service("192.168.0.1", 27015, false),  // TODO: Delete these 
-            new Service("192.168.0.1", 80, true),
-            new Service("localhost", 1234),
-            new Service("Google.com", 80)
+            //new Service("192.168.0.1", 27015, false),  // TODO: Delete these 
+            //new Service("192.168.0.1", 80, true),
+            //new Service("localhost", 1234),
+            //new Service("Google.com", 80)
         };
         ObservableCollection<string> comboBoxInputs = new ObservableCollection<string>();
 
         public MainWindow()
         {
             InitializeComponent();
-            listView.DataContext = services;   // for databinding
+
+            const string servicesXmlName = "Services.xml";
+            Loaded += (sender, e) =>
+            {  // load the services from last time
+                XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
+                try {
+                    using (TextReader reader = new StreamReader(servicesXmlName))
+                    {
+                        var servicesLoaded = serializer.Deserialize(reader) as ObservableCollection<Service>;
+                        if (servicesLoaded != null)
+                        {
+                            services = servicesLoaded;
+                            Dispatcher.Invoke(() =>
+                            {
+                                listView.DataContext = services;
+                            });
+                        }
+                    }
+                } 
+                catch (FileNotFoundException)
+                {
+                    // leave services as is
+                }
+                finally
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        listView.DataContext = services;
+                    });
+                }
+            };
+            Closing += (sender, e) =>
+            {  // save the services
+                XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
+                using (TextWriter writer = new StreamWriter(servicesXmlName)) 
+                { 
+                    serializer.Serialize(writer, services); 
+                }
+            };
             cbHostPort.ItemsSource = comboBoxInputs;
         }
 
