@@ -16,6 +16,8 @@ namespace PortieTalkie
     public partial class TalkieWindow : Window
     {
         private TextBox? lastMsgTextBox;
+        bool lastMsgIsReply = false;
+        string removedNewLine = string.Empty;
         private TcpClient? tcpClient;
         private UdpClient? udpClient;
         private readonly Service service;
@@ -27,7 +29,6 @@ namespace PortieTalkie
             this.service = service;
             Title = service.ToString();
             const int bufferSize = 4096;
-            bool lastMsgIsReply = false;
             // prep networking when the window is loaded
             Loaded += async (sender, e) =>
             {
@@ -65,23 +66,24 @@ namespace PortieTalkie
                                     });
                                     break;
                                 }
-                                if (firstRead)
-                                {
-                                    addMessage(messageStr, true);
-                                }
-                                else if (!firstRead && lastMsgTextBox is not null)
-                                {
-                                    if (messageStr.EndsWith("\r\n"))
-                                    {
-                                        messageStr = messageStr[..^2];  // get rid of the last new line
-                                    }
-                                    else if (messageStr.EndsWith("\n"))
-                                    {
-                                        messageStr = messageStr[..^1];  // get rid of the last new line
-                                    }
-                                    lastMsgTextBox.Text += messageStr;
-                                }
-                                firstRead = !(bytesRead == bufferSize && !messageStr.EndsWith("\r\n")); // msg to be continued or not
+                                addMessage(messageStr, true);
+                                //if (firstRead)
+                                //{
+                                //    addMessage(messageStr, true);
+                                //}
+                                //else if (!firstRead && lastMsgTextBox is not null) // we can append to the last TextBox
+                                //{
+                                //    //if (messageStr.EndsWith("\r\n"))
+                                //    //{
+                                //    //    messageStr = messageStr[..^2];  // get rid of the last new line
+                                //    //}
+                                //    //else if (messageStr.EndsWith("\n"))
+                                //    //{
+                                //    //    messageStr = messageStr[..^1];  // get rid of the last new line
+                                //    //}
+                                //    lastMsgTextBox.Text += messageStr;
+                                //}
+                                //firstRead = !(bytesRead == bufferSize/* && !messageStr.EndsWith("\r\n")*/); // msg to be continued or not
                             }
                             catch (Exception ex)
                             {
@@ -173,7 +175,10 @@ namespace PortieTalkie
                 } // otherwise do nothing, this will only be reached if networkStream is null
             });
             addMessage(inputStr);
-            talkyInput.Clear();
+            Dispatcher.Invoke(() =>
+            {
+                talkyInput.Clear();
+            });
         }
 
 
@@ -201,42 +206,62 @@ namespace PortieTalkie
         }
         private void addMessage(string message, bool isReply = false)
         {
-            TextBox textBox = new TextBox();
+            TextBox textBox = lastMsgIsReply && lastMsgTextBox is not null ? lastMsgTextBox : new TextBox();
             // style the textbox here
             textBox.BorderBrush = null;
             textBox.TextWrapping = TextWrapping.Wrap;
+
+            // if we removed a new line before, add it back now
+            if (lastMsgIsReply)
+            {
+                message = removedNewLine + message;
+                removedNewLine = String.Empty;
+            }
+
             if (isReply)
             {
                 textBox.Foreground = Brushes.Green;
+                lastMsgTextBox = textBox;
             }
+
+
             if (message.EndsWith("\r\n"))
             {
                 message = message[..^2];  // get rid of the last new line
+                if (isReply)
+                {
+                    removedNewLine = "\r\n";
+                }
             }
             else if (message.EndsWith("\n"))
             {
                 message = message[..^1];  // get rid of the last new line
+                if (isReply)
+                {
+                    removedNewLine = "\n";
+                }
             }
-            if (isReply)
+
+            textBox.Text += message;
+            if (!lastMsgIsReply || !isReply)        // if this is not continued, or an outgoing message, add the textbox to the visual tree
             {
-                textBox.Text = message;
-                lastMsgTextBox = textBox;
+                Dispatcher.Invoke(() =>
+                {
+                    chatMessages.Children.Add(textBox);
+                });
             }
-            else
-            {
-                textBox.Text = message;
-            }
-            Dispatcher.Invoke(() =>
-            {
-                chatMessages.Children.Add(textBox);
-            });
+            lastMsgIsReply = isReply;
         }
-        private void addAnnouncement(string announcement)
+        private void addAnnouncement(string announcement, Color color = default)
         {
             Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
             {
                 TextBlock textBlock = new TextBlock();
-                textBlock.Foreground = new SolidColorBrush(Colors.Blue);
+                if (color == default)
+                {
+                    color = Colors.Blue;
+                }
+                textBlock.Foreground = new SolidColorBrush(color);
                 textBlock.Text = announcement;
                 chatMessages.Children.Add(textBlock);
             });
