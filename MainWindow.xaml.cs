@@ -83,7 +83,7 @@ namespace PortieTalkie
                 Title = "PortieTalkie : " + xmlFileName + (madeChanges ? " *" : "");
                 if (xmlFileName == "Services.xml")
                 {
-                    Title += "[Default list]";
+                    Title += " [Default list]";
                 }
             }
         }
