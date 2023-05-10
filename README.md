@@ -7,7 +7,7 @@ Add services by putting down the host and port delimited by ":" in the ComboBox.
 ![main window of PortieTalkie](./images/mainwindow.png)
 
 After double clicking on a service, a familiar "chat window" will appear for you to talk to the service.
-![talkie window connected to google.com:80](./images/getrequesttogoogle.png)
+![talkie window connected to google.com:80](./images/getrequestgoogle.png)
 Getting flooded by Google's response is always fun.
 ![google's response to get request](./images/googleresponse.png)
 
