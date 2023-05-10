@@ -38,7 +38,7 @@ namespace PortieTalkie
                     addAnnouncement("Connecting...");
 
                     try
-                    {
+                    {   // Connect!
                         await tcpClient.ConnectAsync(service.Host, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
                         networkStream = tcpClient.GetStream();
 
@@ -51,7 +51,7 @@ namespace PortieTalkie
                         {
                             try
                             {
-                                // READ
+                                // Read
                                 networkMutex.WaitOne();
                                 byte[] buffer = new byte[bufferSize];
                                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferSize);
@@ -67,27 +67,10 @@ namespace PortieTalkie
                                     break;
                                 }
                                 addMessage(messageStr, true);
-                                //if (firstRead)
-                                //{
-                                //    addMessage(messageStr, true);
-                                //}
-                                //else if (!firstRead && lastMsgTextBox is not null) // we can append to the last TextBox
-                                //{
-                                //    //if (messageStr.EndsWith("\r\n"))
-                                //    //{
-                                //    //    messageStr = messageStr[..^2];  // get rid of the last new line
-                                //    //}
-                                //    //else if (messageStr.EndsWith("\n"))
-                                //    //{
-                                //    //    messageStr = messageStr[..^1];  // get rid of the last new line
-                                //    //}
-                                //    lastMsgTextBox.Text += messageStr;
-                                //}
-                                //firstRead = !(bytesRead == bufferSize/* && !messageStr.EndsWith("\r\n")*/); // msg to be continued or not
                             }
                             catch (Exception ex)
                             {
-                                addAnnouncement("Connection interrupted.\nError: " + ex.Message);
+                                addAnnouncement("Connection interrupted.\nError: " + ex.Message, Colors.Red);
                                 break;
                             }
                             finally
@@ -108,7 +91,7 @@ namespace PortieTalkie
                 {
                     udpClient = new UdpClient(0);
                     btnSend.IsEnabled = true;
-                    while (true)
+                    while (true)    // Straight to the receive loop, no connection for UDP
                     {
                         try
                         {
@@ -118,7 +101,7 @@ namespace PortieTalkie
                         }
                         catch (Exception ex)
                         {
-                            addAnnouncement("Error while trying to receive UDP packet: " + ex.Message);
+                            addAnnouncement("Error while trying to receive UDP packet: " + ex.Message, Colors.Red);
                             break;
                         }
                         finally
@@ -148,7 +131,7 @@ namespace PortieTalkie
                     }
                     catch (Exception ex)
                     {
-                        addAnnouncement("Connection interrupted.\nError: " + ex.Message);
+                        addAnnouncement("Connection interrupted.\nError: " + ex.Message, Colors.Red);
                     }
                     finally
                     {
@@ -165,7 +148,7 @@ namespace PortieTalkie
                         }
                         catch (Exception ex)
                         {
-                            addAnnouncement("Connection interrupted.\nError: " + ex.Message);
+                            addAnnouncement("Connection interrupted.\nError: " + ex.Message, Colors.Red);
                         }
                         finally
                         {
@@ -204,6 +187,14 @@ namespace PortieTalkie
         {
             talkyInput.AcceptsReturn = false;
         }
+        /// <summary>
+        /// Add a read-only TextBox containing the message to the main window. 
+        /// If the message is a reply from the service and the user hasn't sent 
+        /// anything since the last reply, addMessage will append the message 
+        /// to the previous TextBox.
+        /// </summary>
+        /// <param name="message">Message to be added to the TalkieWindow.</param>
+        /// <param name="isReply">true if the message is a reply from the service, false if the message is outgoing.</param>
         private void addMessage(string message, bool isReply = false)
         {
             TextBox textBox = lastMsgIsReply && lastMsgTextBox is not null ? lastMsgTextBox : new TextBox();
@@ -253,9 +244,15 @@ namespace PortieTalkie
             }
             lastMsgIsReply = isReply;
         }
+        /// <summary>
+        /// Add a TextBlock containing the announcement to the TalkieWindow.
+        /// The default color is Colors.Blue.
+        /// </summary>
+        /// <param name="announcement">The announcement to be made.</param>
+        /// <param name="color">Use the Colors enum.</param>
         private void addAnnouncement(string announcement, Color color = default)
         {
-            Dispatcher.Invoke(() =>    // this will make the function thread-safe to call (right?)
+            Dispatcher.Invoke(() =>    // this will make the function thread-safe to call
             {
                 TextBlock textBlock = new TextBlock();
                 if (color == default)
@@ -271,7 +268,7 @@ namespace PortieTalkie
         private void btnReconnect_Click(object sender, RoutedEventArgs e)
         {
             this.RaiseEvent(new RoutedEventArgs(Window.LoadedEvent));    // Back to Loaded we go!
-            btnReconnect.Visibility = Visibility.Hidden;
+            btnReconnect.Visibility = Visibility.Hidden;                 // Gotta cover up the Reconnect button
             lastMsgIsReply = false;
         }
     }
