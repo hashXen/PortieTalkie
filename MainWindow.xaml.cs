@@ -15,12 +15,7 @@ namespace PortieTalkie
     /// </summary>
     public partial class MainWindow : Window
     {
-        ObservableCollection<Service> services = new ObservableCollection<Service>(){
-            //new Service("192.168.0.1", 27015, false),  // TODO: Delete these 
-            //new Service("192.168.0.1", 80, true),
-            //new Service("localhost", 1234),
-            //new Service("Google.com", 80)
-        };
+        ObservableCollection<Service> services = new ObservableCollection<Service>(){};
         ObservableCollection<string> comboBoxInputs = new ObservableCollection<string>();
         List<TalkieWindow> talkieWindows = new List<TalkieWindow>();
         public MainWindow()
@@ -31,41 +26,13 @@ namespace PortieTalkie
             Loaded += (sender, e) =>
             {  // load the services from last time
                 XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
-                try {
-                    using (TextReader reader = new StreamReader(servicesXmlName))
-                    {
-                        var servicesLoaded = serializer.Deserialize(reader) as ObservableCollection<Service>;
-                        if (servicesLoaded != null)
-                        {
-                            services = servicesLoaded;                                                                                 
-                            Dispatcher.Invoke(() =>
-                            {
-                                listView.DataContext = services;
-                            });
-                        }
-                    }
-                } 
-                catch (FileNotFoundException)
-                {
-                    // leave services as is
-                }
-                finally
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        listView.DataContext = services;
-                    });
-                }
+                ReadServices(servicesXmlName);
             };
             Closing += (sender, e) =>
             {  // save the services
                 if (MessageBoxResult.OK == MessageBox.Show("Quit PortieTalkie?", "", MessageBoxButton.OKCancel, MessageBoxImage.Question))
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
-                    using (TextWriter writer = new StreamWriter(servicesXmlName))
-                    {
-                        serializer.Serialize(writer, services);
-                    }
+                    WriteServices(servicesXmlName);
                     foreach (var talkieWindow in talkieWindows)
                     {
                         talkieWindow.Close();
@@ -79,20 +46,8 @@ namespace PortieTalkie
             cbHostPort.ItemsSource = comboBoxInputs;
         }
 
-        private void MenuAbout_Click(object sender, RoutedEventArgs e)
-        {
-            AboutWindow aboutWindow = new AboutWindow();
-            aboutWindow.ShowDialog();
-        }
-        private void MenuExit_Click(object sender, RoutedEventArgs e)
-        {
-            Close();    // Do not use Environment.Exit() for the Closing event to trigger
-        }
-        private void MenuAdd_Click(object sender, RoutedEventArgs e)
-        {
-            services.Add(new Service("0.0.0.0", 80));
-        }
 
+        ////////////////////////////////// ListView events //////////////////////////////////
         private void listView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             try
@@ -110,46 +65,6 @@ namespace PortieTalkie
             {   // if nothing is selected yet (or the end of the list was selected and deleted in an instant
                 // which is currently not possible), do nothing
                 return;
-            }
-        }
-
-        private void MenuOpen_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void ButtonAdd_Click(object sender, RoutedEventArgs e)
-        {
-            bool? isTcp = tcpRadioButton.IsChecked;
-            Service service;
-            try
-            {
-                if (isTcp.HasValue)
-                {
-                    service = new Service(cbHostPort.Text, (bool)isTcp);
-                }
-                else
-                {
-                    service = new Service(cbHostPort.Text);
-                }
-                if (!services.Contains(service))
-                {
-                    services.Add(service);
-                    comboBoxInputs.Add(cbHostPort.Text);
-                }
-            }
-            catch (ArgumentException ae)
-            {
-                MessageBox.Show(ae.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-        }
-
-        private void cbHostPort_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                ButtonAdd_Click(sender, e);
             }
         }
         private void listViewItemDelete_Click(object sender, RoutedEventArgs e)
@@ -181,6 +96,113 @@ namespace PortieTalkie
             {
                 // When nothing is selected, don't open the context menu either
                 e.Handled = true;
+            }
+        }
+        ////////////////////////////////// Menu click events //////////////////////////////////
+        private void MenuAbout_Click(object sender, RoutedEventArgs e)
+        {
+            AboutWindow aboutWindow = new AboutWindow();
+            aboutWindow.ShowDialog();
+        }
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
+        {
+            Close();    // Do not use Environment.Exit() so that the Closing event can trigger
+        }
+        ////////////////////////////////// Application Commands //////////////////////////////////
+        private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("Open");
+        }
+
+        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("Save");
+        }
+
+        private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("SaveAs");
+        }
+
+        ////////////////////////////////// Button click events //////////////////////////////////
+        private void ButtonAdd_Click(object sender, RoutedEventArgs e)
+        {
+            bool? isTcp = tcpRadioButton.IsChecked;
+            Service service;
+            try
+            {
+                if (isTcp.HasValue)
+                {
+                    service = new Service(cbHostPort.Text, (bool)isTcp);
+                }
+                else
+                {
+                    service = new Service(cbHostPort.Text);
+                }
+                if (!services.Contains(service))
+                {
+                    services.Add(service);
+                    comboBoxInputs.Add(cbHostPort.Text);
+                }
+            }
+            catch (ArgumentException ae)
+            {
+                MessageBox.Show(ae.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+        }
+        ////////////////////////////////// ComboBox events //////////////////////////////////
+        private void cbHostPort_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ButtonAdd_Click(sender, e);
+            }
+        }
+        ////////////////////////////////// XML interactions //////////////////////////////////
+        private void ReadServices(string XmlPathName)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
+            try
+            {
+                using (TextReader reader = new StreamReader(XmlPathName))
+                {
+                    var servicesLoaded = serializer.Deserialize(reader) as ObservableCollection<Service>;
+                    if (servicesLoaded != null)
+                    {
+                        services = servicesLoaded;
+                        Dispatcher.Invoke(() =>
+                        {
+                            listView.DataContext = services;
+                        });
+                    }
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                // leave services as is
+            }
+            finally
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    listView.DataContext = services;
+                });
+            }
+        }
+        private void WriteServices(string XmlPathName)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<Service>));
+            try
+            {
+                using (TextWriter writer = new StreamWriter(XmlPathName))
+                {
+                    serializer.Serialize(writer, services);
+                }
+            }
+            catch (IOException e)
+            {
+                MessageBox.Show($"Could not save list of services to {XmlPathName}:" + e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

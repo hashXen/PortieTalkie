@@ -41,7 +41,7 @@ namespace PortieTalkie
                     {
                         await tcpClient.ConnectAsync(service.IP, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
                         networkStream = tcpClient.GetStream();
-                        bool firstRead = true; // for messages longer than buffer
+
                         addAnnouncement("Connected!");
                         Dispatcher.Invoke(() =>
                         {

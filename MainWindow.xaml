@@ -10,6 +10,15 @@
     <Window.Resources>
         <local:BoolToStringConverter x:Key="BoolToStringConverter" />
     </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control+Shift" Command="ApplicationCommands.SaveAs"/>
+    </Window.InputBindings>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />
+        <CommandBinding Command="ApplicationCommands.Save" Executed="Save_Executed" />
+        <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveAs_Executed" />
+    </Window.CommandBindings>
     <Grid MinHeight="600" MinWidth="800">
         <Grid.RowDefinitions>
             <RowDefinition Height="22" />
@@ -18,13 +27,11 @@
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
-                <MenuItem Header="A_dd" Click="MenuAdd_Click" />
+                <MenuItem Header="_Open" InputGestureText="Ctrl+O" Command="ApplicationCommands.Open"/>
+                <MenuItem Header="_Save" InputGestureText="Ctrl+S" Command="ApplicationCommands.Save"/>
+                <MenuItem Header="Save _As" InputGestureText="Ctrl+Shift+A" Command="ApplicationCommands.SaveAs"/>
                 <Separator/>
-                <MenuItem Header="_Open" Click="MenuOpen_Click"/>
-                <MenuItem Header="_Save" />
-                <MenuItem Header="Save _As" />
-                <Separator/>
-                <MenuItem Header="E_xit" Click="MenuExit_Click" />
+                <MenuItem Header="E_xit" InputGestureText="Alt+F4" Click="MenuExit_Click" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Click="MenuAbout_Click"/>
