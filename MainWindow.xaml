@@ -15,6 +15,7 @@
     </Window.InputBindings>
 
     <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.New" Executed="New_Executed"/>
         <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />
         <CommandBinding Command="ApplicationCommands.Save" Executed="Save_Executed" />
         <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveAs_Executed" />
@@ -27,6 +28,7 @@
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
+                <MenuItem Header="_New" InputGestureText="Ctrl+N" Command="ApplicationCommands.New"/>
                 <MenuItem Header="_Open" InputGestureText="Ctrl+O" Command="ApplicationCommands.Open"/>
                 <MenuItem Header="_Save" InputGestureText="Ctrl+S" Command="ApplicationCommands.Save"/>
                 <MenuItem Header="Save _As" InputGestureText="Ctrl+Shift+A" Command="ApplicationCommands.SaveAs"/>
@@ -49,7 +51,7 @@
         <ListView Name="listView" ItemsSource="{Binding}" Grid.Row="2" MouseDoubleClick="listView_MouseDoubleClick" ContextMenuOpening="listView_ContextMenuOpening">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="IP" DisplayMemberBinding="{Binding IP}" Width="120"/>
+                    <GridViewColumn Header="Host" DisplayMemberBinding="{Binding Host}" Width="120"/>
                     <GridViewColumn Header="Port" DisplayMemberBinding="{Binding Port}" Width="50"/>
                     <GridViewColumn Header="Protocol" DisplayMemberBinding="{Binding IsTCP, Converter={StaticResource BoolToStringConverter}}"/>
                 </GridView>
