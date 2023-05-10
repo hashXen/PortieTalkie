@@ -27,6 +27,7 @@ namespace PortieTalkie
             this.service = service;
             Title = service.ToString();
             const int bufferSize = 4096;
+            bool lastMsgIsReply = false;
             // prep networking when the window is loaded
             Loaded += async (sender, e) =>
             {
@@ -34,6 +35,7 @@ namespace PortieTalkie
                 {
                     tcpClient = new TcpClient();
                     addAnnouncement("Connecting...");
+
                     try
                     {
                         await tcpClient.ConnectAsync(service.IP, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
@@ -53,10 +55,15 @@ namespace PortieTalkie
                                 byte[] buffer = new byte[bufferSize];
                                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferSize);
                                 string messageStr = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                                if (bytesRead == 0) // if the service didn't send anything
+                                if (bytesRead == 0) // this only happens if remote closed connection gracefully
                                 {
-                                    await Task.Delay(10);  // don't block UI
-                                    continue;
+                                    addAnnouncement("Connection closed.");
+                                    Dispatcher.Invoke(() =>
+                                    {
+                                        btnSend.IsEnabled = false;
+                                        btnReconnect.Visibility = Visibility.Visible;
+                                    });
+                                    break;
                                 }
                                 if (firstRead)
                                 {
@@ -130,12 +137,29 @@ namespace PortieTalkie
             var bytes = Encoding.UTF8.GetBytes(inputStr);
             networkMutex.WaitOne();
             Task.Run(async () =>
+            {
+                if (service.IsTCP && networkStream is not null)
                 {
-                    if (service.IsTCP && networkStream is not null)
+                    try
+                    {
+                        await networkStream.WriteAsync(bytes, 0, bytes.Length);
+                    }
+                    catch (Exception ex)
+                    {
+                        addAnnouncement("Connection interrupted.\nError: " + ex.Message);
+                    }
+                    finally
+                    {
+                        networkMutex.ReleaseMutex();
+                    }
+                }
+                else if (!service.IsTCP)   // UDP
+                {
+                    if (udpClient is not null)
                     {
                         try
                         {
-                            await networkStream.WriteAsync(bytes, 0, bytes.Length);
+                            await udpClient.SendAsync(bytes, bytes.Length, service.IP, service.Port);
                         }
                         catch (Exception ex)
                         {
@@ -146,28 +170,11 @@ namespace PortieTalkie
                             networkMutex.ReleaseMutex();
                         }
                     }
-                    else if (!service.IsTCP)   // UDP
-                    {
-                        if (udpClient is not null)
-                        {
-                            try
-                            {
-                                await udpClient.SendAsync(bytes, bytes.Length, service.IP, service.Port);
-                            }
-                            catch (Exception ex)
-                            {
-                                addAnnouncement("Connection interrupted.\nError: " + ex.Message);
-                            }
-                            finally
-                            {
-                                networkMutex.ReleaseMutex();
-                            }
-                        }
-                    } // otherwise do nothing, this will only be reached if networkStream is null
-                });
+                } // otherwise do nothing, this will only be reached if networkStream is null
+            });
             addMessage(inputStr);
             talkyInput.Clear();
-        } // otherwise do nothing, this will only be reached if networkStream is null
+        }
 
 
         private void talkyInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -233,6 +240,12 @@ namespace PortieTalkie
                 textBlock.Text = announcement;
                 chatMessages.Children.Add(textBlock);
             });
+        }
+
+        private void btnReconnect_Click(object sender, RoutedEventArgs e)
+        {
+            this.RaiseEvent(new RoutedEventArgs(Window.LoadedEvent));    // Back to Loaded we go!
+            btnReconnect.Visibility = Visibility.Hidden;
         }
     }
 }

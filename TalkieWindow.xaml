@@ -16,12 +16,12 @@
             <RowDefinition Height="3*" />
             <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
-        
+
         <ScrollViewer Grid.Row="0" Grid.ColumnSpan="2">
             <StackPanel Name="chatMessages" />
         </ScrollViewer>
 
-        
+
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -34,10 +34,11 @@
             <StackPanel Grid.Column="1">
                 <CheckBox Name="checkBoxEnterToSend" Content="Enter to send" Margin="5" IsChecked="True" Unchecked="checkBoxEnterToSend_Unchecked" Checked="checkBoxEnterToSend_Checked"/>
                 <CheckBox Name="checkBoxSendNewLine" Content='Send "\r\n"' Margin="5" IsChecked="True"/>
-                
+
             </StackPanel>
             <DockPanel Grid.Column="1" LastChildFill="False">
                 <Button Name="btnSend" IsEnabled="False" DockPanel.Dock="Bottom" Width="Auto" Height="22" Content="Send" Click="btnSend_Click" Margin="5" Style="{StaticResource FancyButtonStyle}"/>
+                <Button x:Name="btnReconnect" IsEnabled="True" Visibility="Hidden" DockPanel.Dock="Bottom" Height="22" Content="Reconnect" Click="btnReconnect_Click" Style="{StaticResource FancyButtonStyle}"/>
             </DockPanel>
 
         </Grid>

@@ -37,7 +37,7 @@ namespace PortieTalkie
                         var servicesLoaded = serializer.Deserialize(reader) as ObservableCollection<Service>;
                         if (servicesLoaded != null)
                         {
-                            services = servicesLoaded;
+                            services = servicesLoaded;                                                                                 
                             Dispatcher.Invoke(() =>
                             {
                                 listView.DataContext = services;
