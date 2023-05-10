@@ -15,15 +15,25 @@ namespace PortieTalkie
     public class Service
     {
         private const string portErrorMsg = "Port number out of range!\nPorts should be from 0 to 65535.";
+        /// <summary>
+        /// Default constructor is needed for the class to become serializable
+        /// </summary>
         public Service()
         {
-            IP = "";
+            Host = "";
             Port = 0;
             IsTCP = true;
         }
-        public Service(string ip, int port, bool isTcp = true)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        /// <param name="isTcp"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public Service(string host, int port, bool isTcp = true)
         {
-            IP = ip;
+            Host = host;
             if (port < 0 || port > 65535)
             {
                 throw new ArgumentException(portErrorMsg);
@@ -31,10 +41,10 @@ namespace PortieTalkie
             Port = port;
             IsTCP = isTcp;
         }
-        public Service(string ipPort, bool isTcp = true)
+        public Service(string hostPort, bool isTcp = true)
         {
-            string[] splits = ipPort.Split(':');
-            IP = splits[0];
+            string[] splits = hostPort.Split(':');
+            Host = splits[0];
             IsTCP = isTcp;
             try
             {
@@ -49,7 +59,7 @@ namespace PortieTalkie
                 throw new ArgumentException(portErrorMsg);
             }
         }
-        public string IP { get; set; }
+        public string Host { get; set; }
         public int Port { get; set; }
         public bool IsTCP { get; set; } // true for TCP, false for UDP
         public static bool operator ==(Service s1, Service s2)
@@ -62,7 +72,7 @@ namespace PortieTalkie
             {   // considering null Services as not equal
                 return false;
             }
-            return s1.IP == s2.IP && s1.Port == s2.Port && s1.IsTCP == s2.IsTCP;
+            return s1.Host == s2.Host && s1.Port == s2.Port && s1.IsTCP == s2.IsTCP;
         }
 
         public static bool operator !=(Service s1, Service s2)
@@ -81,13 +91,17 @@ namespace PortieTalkie
 
         public override int GetHashCode()
         {
-            return (IP, Port, IsTCP).GetHashCode();
+            return (Host, Port, IsTCP).GetHashCode();
         }
+        /// <summary>
+        /// Defines a way to convert a Service into a string.
+        /// </summary>
+        /// <returns>"[protocol]://host:host"</returns>
         public override string ToString()
         {
             var sb = new StringBuilder();
             sb.Append(IsTCP ? "tcp" : "udp");
-            sb.Append($"://{IP}:{Port}");
+            sb.Append($"://{Host}:{Port}");
             return sb.ToString();
         }
     }

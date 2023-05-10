@@ -39,7 +39,7 @@ namespace PortieTalkie
 
                     try
                     {
-                        await tcpClient.ConnectAsync(service.IP, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
+                        await tcpClient.ConnectAsync(service.Host, service.Port).WaitAsync(TimeSpan.FromSeconds(5)); // 5-second timeoout
                         networkStream = tcpClient.GetStream();
 
                         addAnnouncement("Connected!");
@@ -161,7 +161,7 @@ namespace PortieTalkie
                     {
                         try
                         {
-                            await udpClient.SendAsync(bytes, bytes.Length, service.IP, service.Port);
+                            await udpClient.SendAsync(bytes, bytes.Length, service.Host, service.Port);
                         }
                         catch (Exception ex)
                         {
@@ -210,6 +210,7 @@ namespace PortieTalkie
             // style the textbox here
             textBox.BorderBrush = null;
             textBox.TextWrapping = TextWrapping.Wrap;
+            textBox.IsReadOnly = true;
 
             // if we removed a new line before, add it back now
             if (lastMsgIsReply)
@@ -271,6 +272,7 @@ namespace PortieTalkie
         {
             this.RaiseEvent(new RoutedEventArgs(Window.LoadedEvent));    // Back to Loaded we go!
             btnReconnect.Visibility = Visibility.Hidden;
+            lastMsgIsReply = false;
         }
     }
 }
