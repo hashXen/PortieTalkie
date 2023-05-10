@@ -16,7 +16,7 @@ namespace PortieTalkie
     {
         private const string portErrorMsg = "Port number out of range!\nPorts should be from 0 to 65535.";
         /// <summary>
-        /// Default constructor is needed for the class to become serializable
+        /// Default constructor is needed for the class to become serializable.
         /// </summary>
         public Service()
         {
@@ -25,11 +25,12 @@ namespace PortieTalkie
             IsTCP = true;
         }
         /// <summary>
-        /// 
+        /// Create a Service with hostname, port, and whether the service is TCP (isTcp)
+        /// or UDP (!IsTcp).
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        /// <param name="isTcp"></param>
+        /// <param name="host">example.com, 192.168.0.1, etc.</param>
+        /// <param name="port">0-65535</param>
+        /// <param name="isTcp">true for TCP, false for UDP</param>
         /// <exception cref="ArgumentException"></exception>
         public Service(string host, int port, bool isTcp = true)
         {
@@ -41,6 +42,12 @@ namespace PortieTalkie
             Port = port;
             IsTCP = isTcp;
         }
+        /// <summary>
+        /// Create a Service with a "hostname:port" string.
+        /// </summary>
+        /// <param name="hostPort">example.com:80, 192.168.0.1:27015, etc.</param>
+        /// <param name="isTcp">true for TCP, false for UDP</param>
+        /// <exception cref="ArgumentException"></exception>
         public Service(string hostPort, bool isTcp = true)
         {
             string[] splits = hostPort.Split(':');
