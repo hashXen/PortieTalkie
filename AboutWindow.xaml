@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PortieTalkie"
         mc:Ignorable="d"
-        Title="AboutWindow" Height="450" Width="800">
+        Title="About PortieTalkie" Height="300" Width="400">
     <Grid>
-        <Button Content="Click Me" Style="{StaticResource FancyButtonStyle}" Height="20" Width="60"/>
+        <Button Content="OK" Style="{StaticResource FancyButtonStyle}" Height="20" Width="60" Margin="330,254,10,10"/>
     </Grid>
 </Window>
