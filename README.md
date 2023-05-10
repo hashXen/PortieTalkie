@@ -2,6 +2,8 @@
 
 PortieTalkie is a lightweight .NET 6.0 tool intended for testing TCP/IP and UDP applications in a straightforward and visual way, but it also makes for a great learning tool to observe how different internet applications, especially servers, behave.
 
+[Pre-release builds](./releases/tag/v0.1.0-alpha)
+
 You can "talk" to both TCP and UDP services with PortieTalkie!
 Add services by putting down the host and port delimited by ":" in the ComboBox.
 ![main window of PortieTalkie](./images/mainwindow.png)
