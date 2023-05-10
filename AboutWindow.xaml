@@ -5,8 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PortieTalkie"
         mc:Ignorable="d"
-        Title="About PortieTalkie" Height="300" Width="400">
+        Background="CadetBlue"
+        Title="About PortieTalkie" Height="300" Width="400"
+        ResizeMode="NoResize">
     <Grid>
-        <Button Content="OK" Style="{StaticResource FancyButtonStyle}" Height="20" Width="60" Margin="330,254,10,10"/>
+        <Button Content="OK" Style="{StaticResource FancyButtonStyle}" Height="20" Width="60" Margin="330,254,10,10" Click="Button_Click"/>
+        <TextBlock HorizontalAlignment="Center" Margin="0,21,0,0" TextWrapping="Wrap" FontSize="24" FontStyle="Italic" FontFamily="Gotham" Text="PortieTalkie - Talk to ports!" VerticalAlignment="Top"/>
+        <TextBox Name="textBoxInfo" HorizontalAlignment="Center" Margin="0,68,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="360" Height="168" Background="Aquamarine"/>
     </Grid>
 </Window>
